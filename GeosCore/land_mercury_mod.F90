@@ -425,7 +425,16 @@ CONTAINS
     REAL(fp)            :: AREA_M2, DRYSOIL_HG
     REAL(fp)            :: SUNCOSVALUE
     REAL(fp)            :: FRAC_SNOWFREE_LAND
-    REAL(fp)            :: SOIL_EMIS_FAC
+    REAL(fp)            :: SOIL_EMIS_FAC, EXP_SOIL, EXP_RAD
+
+! !VARIABLES FOR CALCULATING SOIL EMISSIONS ON SUB-GRID SCALE
+    ! Pointers to fields in State_Met
+    INTEGER,  POINTER :: IREG(:,:) ! Number of land types
+    INTEGER,  POINTER :: ILAND(:,:,:) ! index of land type 
+    INTEGER,  POINTER :: IUSE(:,:,:) ! permil of area covered
+    REAL(fp), POINTER :: XLAI(:,:,:) ! LAI for each sub-grid land type
+    INTEGER  :: LDT ! Loop counter
+
 !
 ! !DEFINED PARAMETERS:
 !
@@ -446,7 +455,7 @@ CONTAINS
     ! resolutions are encouraged to test and update these as needed (J
     ! Fisher 4/2016)
     !IF      ( TRIM(State_Grid%GridRes) == '4.0x5.0') THEN
-       SOIL_EMIS_FAC = 1.6e-2_fp * 0.9688e+0_fp
+    !   SOIL_EMIS_FAC = 1.6e-2_fp * 0.9688e+0_fp
     !ELSE IF ( TRIM(State_Grid%GridRes) == '2.0x2.5' ) THEN
     !   SOIL_EMIS_FAC=1.6e-2_fp
     !ELSE IF ( TRIM(State_Grid%GridRes) == '0.5x0.625' ) THEN
@@ -470,7 +479,19 @@ CONTAINS
     !   ! This sets a default value for GCM & ESMF COUPLING
     !   SOIL_EMIS_FAC = 2.4e-2_fp*.5742e+0_fp ! for sunlight function
     !ENDIF
+    ! A. Feinberg 05/2022 - implementing new soil emission scheme based
+    ! on formulation in Khan et al. (2019), 10.1039/c9em00341j
+    ! emis = a * conc^b * rad^c
+    ! where a, b, and c are tuned parameters
+    SOIL_EMIS_FAC = 71e+0_fp ! prefactor, a
+    EXP_SOIL = 2.5e+0_fp ! exponent for soil conc, b
+    EXP_RAD = 0.76e+0_fp ! exponent for radiation, c 
 
+    ! Initialize pointers
+    IREG    => State_Met%IREG
+    ILAND   => State_Met%ILAND
+    IUSE    => State_Met%IUSE
+    XLAI    => State_Met%XLAI
     !=================================================================
     ! SOILEMIS begins here!
     !=================================================================
@@ -492,35 +513,51 @@ CONTAINS
        EHg0_so(I,J) = 0e+0_fp
 
        IF ( IS_SNOWFREE_LAND ) THEN
+          ! Initialize soil emissions as zero
+          SOIL_EMIS = 0e+0_fp
 
-          ! attenuate solar radiation based on function of leaf area index
-          ! Jacob and Wofsy 1990 equations 8 & 9
-          TAUZ = State_Met%MODISLAI(I,J) * 0.5e+0_fp
-
+          ! Calculate parameters that are not dependent on Leaf area index:
           ! For very low and below-horizon solar zenith angles, use
           ! same attenuation as for SZA=85 degrees
           SUNCOSVALUE = MAX( State_Met%SUNCOS(I,J), 0.09e+0_fp )
 
-          ! fraction of light reaching the surface is
-          ! attenuated based on LAI
-          LIGHTFRAC = EXP( -TAUZ / SUNCOSVALUE )
-
-          ! Dry soil Hg concentration, ng Hg /g soil
-          DRYSOIL_HG = DRYSOIL_PREIND_HG * EHg0_dist(I,J)
-
-          ! Soil emissions, ng /m2 /h
-          SOIL_EMIS = EXP( 0.0011 * State_Met%SWGDN(I,J) * LIGHTFRAC ) * &
-                      DRYSOIL_HG * SOIL_EMIS_FAC
+          ! Dry soil Hg concentration, ug Hg /g soil
+          DRYSOIL_HG = DRYSOIL_PREIND_HG * EHg0_dist(I,J) / 1.0e+3_fp
 
           ! Grid box surface area [m2]
           AREA_M2   = State_Grid%Area_M2(I,J)
 
-          ! convert soilnat from ng /m2 /h -> kg /gridbox /s
-          EHg0_so(I,J) = SOIL_EMIS * AREA_M2 * 1e-12_fp / &
+          ! Calculate shading effects due to vegetation and soil emissions in subgrid: 
+          DO LDT = 1, IREG(I,J) !Loop over the # of Olson land types in this grid box (I,J)
+            ! If the land type is not represented in grid
+            ! box  (I,J), then skip to the next land type
+            IF ( IUSE(I,J,LDT) == 0 ) CYCLE
+
+            ! attenuate solar radiation based on function of leaf area index
+            ! Jacob and Wofsy 1990 equations 8 & 9
+            TAUZ = XLAI(I,J,LDT) * 0.5e+0_fp
+
+            ! fraction of light reaching the surface is
+            ! attenuated based on LAI
+            LIGHTFRAC = EXP( -TAUZ / SUNCOSVALUE )
+            ! Soil emissions, ng /m2 /h
+
+            ! updated to new formulation by A. Feinberg
+            ! (improved diurnal cycle and response to LAI)
+            SOIL_EMIS = SOIL_EMIS + & ! sum soil emissions from all land types
+                        1.0e-3_fp * FLOAT(IUSE(I,J,LDT)) * & ! multiply by land fraction
+                        SOIL_EMIS_FAC * &
+                        (DRYSOIL_HG  ** EXP_SOIL) * &
+                        ((State_Met%SWGDN(I,J) * LIGHTFRAC ) ** EXP_RAD)  
+
+          ENDDO
+
+         ! convert soilnat from ng /m2 /h -> kg /gridbox /s
+         EHg0_so(I,J) = SOIL_EMIS * AREA_M2 * 1e-12_fp / &
                          ( 60e+0_fp * 60e+0_fp )
 
-          ! Multiply by fractional land area
-          EHg0_so(I,J) = EHg0_so(I,J) * FRAC_SNOWFREE_LAND
+         ! Multiply by fractional land area
+         EHg0_so(I,J) = EHg0_so(I,J) * FRAC_SNOWFREE_LAND
 
        ENDIF
 
