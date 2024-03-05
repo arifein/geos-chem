@@ -3250,6 +3250,7 @@ CONTAINS
     REAL(fp)                :: CHg0aq,   CHg0,     vi, Hg0aqtemp
     REAL(fp)                :: TC,       TK,       Kw
     REAL(fp)                :: Sc,       ScCO2,    USQ
+    REAL(fp)                :: eta_fw, eta_sw, rho_sw !MCHgMAP
     REAL(fp)                :: FRAC_L,   FRAC_O,   H, D
     REAL(fp)                :: FUP(State_Grid%NX,State_Grid%NY) 
     REAL(fp)                :: FDOWN(State_Grid%NX,State_Grid%NY)
@@ -3324,6 +3325,7 @@ CONTAINS
     !$OMP PARALLEL DO                                                        &
     !$OMP DEFAULT( SHARED                                                   )&
     !$OMP PRIVATE( I,            A_M2,    vi,     ScCO2                     )&
+    !$OMP PRIVATE( eta_fw, eta_sw, rho_sw                                   )&
     !$OMP PRIVATE( J,            TC,      TK                                )&
     !$OMP PRIVATE( N,            CHg0,    FRAC_L, FRAC_O                    )&
     !$OMP PRIVATE( H,            Kw,      CHg0aq, Hg0aqtemp, MHg0_air       )&
@@ -3366,25 +3368,39 @@ CONTAINS
           !==============================================================
 
           ! Henry's law constant (gas->liquid) [unitless] [L water/L air]
-          ! (ref: Andersson et al. 2008)
+          ! (ref: Andersson et al. 2008), used in MCHgMAP
           H      = EXP( ( -2404.3_fp / TK ) + 6.92_fp )
 
           ! Viscosity as a function of changing temperatures
           ! (ref: Loux 2001)
           ! The paper says the viscosity is given in cP but us really P
           ! and we therefor multiply with 100 to get cP.
-          vi    = ( 10**( ( 1301.0_fp / ( 998.333_fp + 8.1855_fp             &
-                  * ( TC - 20.0_fp )  + 0.00585_fp                           &
-                  * ( TC - 20.0_fp )**2 ) ) - 3.30233_fp ) ) * 100.0_fp
+          !vi    = ( 10**( ( 1301.0_fp / ( 998.333_fp + 8.1855_fp             &
+          !        * ( TC - 20.0_fp )  + 0.00585_fp                           &
+          !        * ( TC - 20.0_fp )**2 ) ) - 3.30233_fp ) ) * 100.0_fp
+          !
+          ! MCHgMAP new parametrization for viscosity 
+          ! freshwater dynamic viscosity from Sharqawy et al. (2010) [g cm-1 s-1]
+          eta_fw = 4.2844e-4_fp + 1.0_fp / (0.0157 * (TC + 64.993_fp)**2 - 9.13_fp)
+          ! seawater dynamic viscosity from Sharqawy et al. (2010) [g cm-1 s-1]
+          eta_sw = eta_fw * (1.064_fp + 6.067e-4 * TC - 2.753e-6 * TC**2)
+          ! seawater density from Sharqawy et al. (2010) [g cm-3]
+          rho_sw = 1.028_fp - 4.970e-5 * TC - 5.575e-6 * TC**2
+          ! seawater kinematic viscosity from Sharqawy et al. (2010) [cm2 s-1]
+          vi = eta_sw / rho_sw
 
           ! Schmidt # for Hg [unitless]
           ! Sc = v/D = kinematic viscosity/diffusivity
           ! (ref: Poissant et al 2000; Wilke and Chang 1995)
           ! to correct for seawater D0 is decreased by 6% as suggested
           ! by Wanninkhof (1992)
-          D  = 7.4e-8_fp * SQRT( 2.26_fp * 18.0_fp   )                       &
-             * TK        / ( ( 14.8_fp**0.6_fp ) *vi )
-          Sc = ( 0.017_fp * EXP( -0.025_fp * TC ) ) / D
+          !D  = 7.4e-8_fp * SQRT( 2.26_fp * 18.0_fp   )                       &
+          !   * TK        / ( ( 14.8_fp**0.6_fp ) *vi )
+          !
+          ! MCHgMAP new parametrization for diffusivity from Kuss (2014) [cm2 s-1]
+          D = 0.0011_fp * EXP(-1330.2_fp / TK) 
+          ! MCHgMAP new parametrization for Schmidt number of Hg0 - Sharqawy et al. (2010) [unitless]
+          Sc = vi / D
 
           ! Schmidt # of CO2 [unitless] for CO2 in seawater at 20 degrees C
           ! The value is set to a constant based on other ocean studies
@@ -3392,8 +3408,12 @@ CONTAINS
           !
           ! Correction of the Schmidt # with temperature based on Poissant
           ! et al. (2000) (for freshwatersystems).
-          ScCO2  = 644.7_fp + TC * ( -6.16_fp + TC * ( 0.11_fp ) )
-
+          ! ScCO2  = 644.7_fp + TC * ( -6.16_fp + TC * ( 0.11_fp ) )
+          !
+          ! MCHgMAP new parametrization from Wanninnkhof (2014):
+          ScCO2 = 2116.8_fp - 136.25_fp * TC + 4.7353_fp * TC**2 - 0.092307_fp * TC**3 &
+                  + 0.0007555_fp * TC**4
+ 
           ! Square of surface (actually 10m) wind speed [m2/s2]
           Usq    = State_Met%U10M(I,J)**2 + State_Met%V10M(I,J)**2
 
@@ -3402,7 +3422,9 @@ CONTAINS
           ! coefficient
           !------------------------------------------------------
           ! Mass transfer coefficient [cm/h], from Nightingale et al. 2000
-          Kw     = ( 0.25_fp * Usq ) / SQRT( Sc / ScCO2 )
+          ! Kw     = ( 0.25_fp * Usq ) / SQRT( Sc / ScCO2 )
+          ! MCHgMAP new parametrization from Nightingale et al., 2000, doi: 10.1029/1999GB900091
+          Kw     = ( 0.222_fp * Usq + 0.333 * Usq**0.5 ) / SQRT( Sc / ScCO2 )
 
           ! Hg0 tracer number (for Spc)
           N = id_Hg0 !Hg0_Id_List(NN)
