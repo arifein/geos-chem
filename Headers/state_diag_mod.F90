@@ -1191,7 +1191,22 @@ MODULE State_Diag_Mod
 
      REAL(f4), POINTER :: Hg2GasToSSA              (:,:,:)
      LOGICAL :: Archive_Hg2GasToSSA
+     !%%%%% MCHgMAP outputs - A. Feinberg %%%%%
 
+     REAL(f4), POINTER :: TotalHg2G              (:,:,:)
+     LOGICAL :: Archive_TotalHg2G
+
+     REAL(f4), POINTER :: TotalHg2P              (:,:,:)
+     LOGICAL :: Archive_TotalHg2P
+
+     REAL(f4), POINTER :: ColumnHg0              (:,:)
+     LOGICAL :: Archive_ColumnHg0
+
+     REAL(f4), POINTER :: ColumnHg2G              (:,:)
+     LOGICAL :: Archive_ColumnHg2G
+
+     REAL(f4), POINTER :: ColumnHg2P              (:,:)
+     LOGICAL :: Archive_ColumnHg2P
      !%%%%% Simulation with RRTMG %%%%%
 
      INTEGER                     :: nRadOut
@@ -2630,6 +2645,19 @@ CONTAINS
     State_Diag%Archive_Hg2PToHg2G                  = .FALSE.
     State_Diag%Archive_Hg2GasToHg2StrP             = .FALSE.
     State_Diag%Archive_Hg2GasToSSA                 = .FALSE.
+
+    ! From Ari Feinberg (MCHgMAP)
+    State_Diag%TotalHg2G                           => NULL()
+    State_Diag%TotalHg2P                           => NULL()
+    State_Diag%ColumnHg0                           => NULL()
+    State_Diag%ColumnHg2G                          => NULL()
+    State_Diag%ColumnHg2P                          => NULL()
+
+    State_Diag%Archive_TotalHg2G                   = .FALSE.
+    State_Diag%Archive_TotalHg2P                   = .FALSE.
+    State_Diag%Archive_ColumnHg0                   = .FALSE.
+    State_Diag%Archive_ColumnHg2G                  = .FALSE.
+    State_Diag%Archive_ColumnHg2P                  = .FALSE.
 
     ! ObsPack diagnostic quantities
     State_Diag%Do_ObsPack                          = .FALSE.
@@ -11249,6 +11277,116 @@ CONTAINS
           RETURN
        ENDIF
 
+       !-------------------------------------------------------------------
+       ! Total Hg2 gaseous mixing ratio 
+       !-------------------------------------------------------------------
+       diagID  = 'TotalHg2G'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%TotalHg2G,                           &
+            archiveData    = State_Diag%Archive_TotalHg2G,                   &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
+       ! Total Hg2 particle mixing ratio 
+       !-------------------------------------------------------------------
+       diagID  = 'TotalHg2P'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%TotalHg2P,                           &
+            archiveData    = State_Diag%Archive_TotalHg2P,                   &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
+       ! Column Hg0 mass 
+       !-------------------------------------------------------------------
+       diagID  = 'ColumnHg0'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%ColumnHg0,                           &
+            archiveData    = State_Diag%Archive_ColumnHg0,                   &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
+       ! Column Hg2 gaseous mass 
+       !-------------------------------------------------------------------
+       diagID  = 'ColumnHg2G'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%ColumnHg2G,                          &
+            archiveData    = State_Diag%Archive_ColumnHg2G,                  &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
+       ! Column Hg2 particle mass 
+       !-------------------------------------------------------------------
+       diagID  = 'ColumnHg2P'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%ColumnHg2P,                          &
+            archiveData    = State_Diag%Archive_ColumnHg2P,                  &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
        !----------------------------------------------------------------
        ! Br concentration
        !----------------------------------------------------------------
@@ -11722,7 +11860,7 @@ CONTAINS
        ! being requested as diagnostic output when the corresponding
        ! array has not been allocated.
        !-------------------------------------------------------------------
-       DO N = 1, 41
+       DO N = 1, 46
 
           SELECT CASE( N )
              CASE( 1  )
@@ -11807,6 +11945,16 @@ CONTAINS
                 diagId = 'MassHgPinOcean'
              CASE( 41 )
                 diagId = 'MassHgTotalInOcean'
+             CASE( 42 )
+                diagId = 'TotalHg2G'
+             CASE( 43 )
+                diagId = 'TotalHg2P'
+             CASE( 44 )
+                diagId = 'ColumnHg0'
+             CASE( 45 )
+                diagId = 'ColumnHg2G'
+             CASE( 46 )
+                diagId = 'ColumnHg2P'
            END SELECT
 
            ! Exit if any of the above are in the diagnostic list
@@ -13638,6 +13786,31 @@ CONTAINS
 
     CALL Finalize( diagId   = 'ReactiveGaseousHg',                           &
                    Ptr2Data = State_Diag%ReactiveGaseousHg,                  &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'TotalHg2G',                                   &
+                   Ptr2Data = State_Diag%TotalHg2G,                          &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'TotalHg2P',                                   &
+                   Ptr2Data = State_Diag%TotalHg2P,                          &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'ColumnHg0',                                   &
+                   Ptr2Data = State_Diag%ColumnHg0,                          &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'ColumnHg2G',                                  &
+                   Ptr2Data = State_Diag%ColumnHg2G,                         &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'ColumnHg2P',                                  &
+                   Ptr2Data = State_Diag%ColumnHg2P,                         &
                    RC       = RC                                            )
     IF ( RC /= GC_SUCCESS ) RETURN
 
@@ -15966,6 +16139,31 @@ CONTAINS
        IF ( isUnits   ) Units = 'molec cm-3 s-1'
        IF ( isRank    ) Rank  = 3
 ! MSL
+    ! From Ari Feinberg (MCHgMAP)
+    ELSE IF ( TRIM( Name_AllCaps ) == 'TOTALHG2G' )  THEN
+       IF ( isDesc    ) Desc  = 'Mixing ratio of gaseous Hg2'
+       IF ( isUnits   ) Units = 'mol mol-1'
+       IF ( isRank    ) Rank  = 3
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'TOTALHG2P' )  THEN
+       IF ( isDesc    ) Desc  = 'Mixing ratio of particulate Hg2'
+       IF ( isUnits   ) Units = 'mol mol-1'
+       IF ( isRank    ) Rank  = 3
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'COLUMNHG0' )  THEN
+       IF ( isDesc    ) Desc  = 'Total Column of Hg0'
+       IF ( isUnits   ) Units = 'kg Hg m-2'
+       IF ( isRank    ) Rank  = 2 
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'COLUMNHG2G' )  THEN
+       IF ( isDesc    ) Desc  = 'Total Column of gaseous Hg2'
+       IF ( isUnits   ) Units = 'kg Hg m-2'
+       IF ( isRank    ) Rank  = 2 
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'COLUMNHG2P' )  THEN
+       IF ( isDesc    ) Desc  = 'Total Column of particulate Hg2'
+       IF ( isUnits   ) Units = 'kg Hg m-2'
+       IF ( isRank    ) Rank  = 2 
 
     ELSE IF ( TRIM( Name_AllCaps ) == 'CONCBR' ) THEN
        IF ( isDesc    ) Desc  = 'Br concentration'
