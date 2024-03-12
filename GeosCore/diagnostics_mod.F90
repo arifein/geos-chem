@@ -69,167 +69,167 @@ CONTAINS
     USE State_Chm_Mod,    ONLY : ChmState, Ind_
     USE State_Diag_Mod,   ONLY : DgnState, DgnMap
     USE State_Grid_Mod,   ONLY : GrdState
-            USE PhysConstants,    ONLY : AIRMW,  AVO
-            USE TIME_MOD,         ONLY : GET_LOCALTIME
-        !
-        ! !INPUT PARAMETERS:
-        !
-            TYPE(OptInput),   INTENT(IN)    :: Input_Opt      ! Input Options object
-            TYPE(GrdState),   INTENT(IN)    :: State_Grid     ! Grid state object
-            TYPE(MetState),   INTENT(IN)    :: State_Met      ! Meteorology state object
-        !
-        ! !INPUT AND OUTPUT PARAMETERS:
-        !
-            TYPE(ChmState),   INTENT(INOUT) :: State_Chm      ! Chemistry state obj
-            TYPE(DgnState),   INTENT(INOUT) :: State_Diag     ! Diagnostics state obj
-        !
-        ! !OUTPUT PARAMETERS:
-        !
-            INTEGER,              INTENT(OUT)   :: RC
-        !
-        ! !REVISION HISTORY:
-        !  01 Feb 2018 - E. Lundgren - initial version
-        !  See https://github.com/geoschem/geos-chem for complete history
-        !EOP
-        !------------------------------------------------------------------------------
-        !BOC
-        !
-        ! !LOCAL VARIABLES:
-        !
-            ! Scalars
-            INTEGER                 :: I, J, L, N, S, P
-            INTEGER                 :: id_HgBrNO2,  id_HgBrHO2 ! MCHgMAP
-            INTEGER  :: id_HgBrOH,      id_HgBrBrO,  id_HgBrClO
-            INTEGER  :: id_HgBr2,       id_HgClNO2,  id_HgClHO2
-            INTEGER  :: id_HgClOH,      id_HgClBrO,  id_HgClClO
-            INTEGER  :: id_HgClBr,      id_HgOHNO2,  id_HgOHHO2
-            INTEGER  :: id_HgOHOH,      id_HgOHBrO,  id_HgOHClO
-            INTEGER  :: id_HgCl2,       id_Hg2Clp,   id_Hg2ORGp
-            INTEGER  :: id_Hg2STRP,     id_HgBr,     id_HgCl
-            INTEGER  :: id_HgOH,        id_HgBrO,    id_HgClO
-            INTEGER  :: id_HgOHO,       nHg2GSpc, nHg2PSpc
-            INTEGER                 :: Map_Hg2G(26), Map_Hg2P
-            ! Arrays
-            REAL(fp) :: temp_sumHg2P(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
-            REAL(fp) :: temp_sumHg2G(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
-            REAL(fp) :: tempspcMass(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
+    USE PhysConstants,    ONLY : AIRMW,  AVO
+    USE TIME_MOD,         ONLY : GET_LOCALTIME
+!
+! !INPUT PARAMETERS:
+!
+    TYPE(OptInput),   INTENT(IN)    :: Input_Opt      ! Input Options object
+    TYPE(GrdState),   INTENT(IN)    :: State_Grid     ! Grid state object
+    TYPE(MetState),   INTENT(IN)    :: State_Met      ! Meteorology state object
+!
+! !INPUT AND OUTPUT PARAMETERS:
+!
+    TYPE(ChmState),   INTENT(INOUT) :: State_Chm      ! Chemistry state obj
+    TYPE(DgnState),   INTENT(INOUT) :: State_Diag     ! Diagnostics state obj
+!
+! !OUTPUT PARAMETERS:
+!
+    INTEGER,              INTENT(OUT)   :: RC
+!
+! !REVISION HISTORY:
+!  01 Feb 2018 - E. Lundgren - initial version
+!  See https://github.com/geoschem/geos-chem for complete history
+!EOP
+!------------------------------------------------------------------------------
+!BOC
+!
+! !LOCAL VARIABLES:
+!
+    ! Scalars
+    INTEGER                 :: I, J, L, N, S, P
+    INTEGER  :: id_Hg0, id_HgBrNO2,  id_HgBrHO2 ! MCHgMAP
+    INTEGER  :: id_HgBrOH,      id_HgBrBrO,  id_HgBrClO
+    INTEGER  :: id_HgBr2,       id_HgClNO2,  id_HgClHO2
+    INTEGER  :: id_HgClOH,      id_HgClBrO,  id_HgClClO
+    INTEGER  :: id_HgClBr,      id_HgOHNO2,  id_HgOHHO2
+    INTEGER  :: id_HgOHOH,      id_HgOHBrO,  id_HgOHClO
+    INTEGER  :: id_HgCl2,       id_Hg2Clp,   id_Hg2ORGp
+    INTEGER  :: id_Hg2STRP,     id_HgBr,     id_HgCl
+    INTEGER  :: id_HgOH,        id_HgBrO,    id_HgClO
+    INTEGER  :: id_HgOHO,       nHg2GSpc, nHg2PSpc
+    INTEGER                 :: Map_Hg2G(26), Map_Hg2P(4)
+    ! Arrays
+    REAL(fp) :: temp_sumHg2P(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
+    REAL(fp) :: temp_sumHg2G(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
+    REAL(fp) :: tempspcMass(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
 
-            REAL(fp)                :: ToPptv, LT
+    REAL(fp)                :: ToPptv, LT
 
-            ! SAVEd scalars
-            INTEGER, SAVE           :: id_Hg2 = -1
-            INTEGER, SAVE           :: id_HgP = -1
-            LOGICAL, SAVE           :: FIRST_Hg  = .TRUE.
+    ! SAVEd scalars
+    INTEGER, SAVE           :: id_Hg2 = -1
+    INTEGER, SAVE           :: id_HgP = -1
+    LOGICAL, SAVE           :: FIRST_Hg  = .TRUE.
 
-            ! Strings
-            CHARACTER(LEN=255)      :: ErrMsg, ThisLoc
+    ! Strings
+    CHARACTER(LEN=255)      :: ErrMsg, ThisLoc
 
-            ! Objects
-            TYPE(DgnMap), POINTER   :: mapData
+    ! Objects
+    TYPE(DgnMap), POINTER   :: mapData
 
-            !========================================================================
-            ! Set_Diagnostics_EndofTimestep begins here
-            !========================================================================
+    !========================================================================
+    ! Set_Diagnostics_EndofTimestep begins here
+    !========================================================================
 
-            ! Initialize
-            RC      = GC_SUCCESS
-            ErrMsg  = ''
-            ThisLoc = &
-              ' -> at Set_Diagnostics_EndofTimestep (in GeosCore/diagnostics_mod.F90)'
+    ! Initialize
+    RC      = GC_SUCCESS
+    ErrMsg  = ''
+    ThisLoc = &
+      ' -> at Set_Diagnostics_EndofTimestep (in GeosCore/diagnostics_mod.F90)'
 
-            !------------------------------------------------------------------------
-            ! Set species concentration for diagnostics in units of
-            ! v/v dry air = mol/mol dry air
-            !------------------------------------------------------------------------
-            CALL Set_SpcConc_Diags_VVDry( Input_Opt,  State_Chm, State_Diag,         &
-                                          State_Grid, State_Met, RC                 )
+    !------------------------------------------------------------------------
+    ! Set species concentration for diagnostics in units of
+    ! v/v dry air = mol/mol dry air
+    !------------------------------------------------------------------------
+    CALL Set_SpcConc_Diags_VVDry( Input_Opt,  State_Chm, State_Diag,         &
+                                  State_Grid, State_Met, RC                 )
 
-            ! Trap potential errors
-            IF ( RC /= GC_SUCCESS ) THEN
-               ErrMsg = 'Error encountered setting SpeciesConcVV diagnostic'
-               CALL GC_ERROR( ErrMsg, RC, ThisLoc )
-               RETURN
-            ENDIF
+    ! Trap potential errors
+    IF ( RC /= GC_SUCCESS ) THEN
+       ErrMsg = 'Error encountered setting SpeciesConcVV diagnostic'
+       CALL GC_ERROR( ErrMsg, RC, ThisLoc )
+       RETURN
+    ENDIF
 
-            !-----------------------------------------------------------------------
-            ! Set species concentration for diagnostics in units of
-            ! molec/cm3 (hplin, 11/21/21)
-            !-----------------------------------------------------------------------
-            CALL Set_SpcConc_Diags_MND  ( Input_Opt,  State_Chm, State_Diag,         &
-                                          State_Grid, State_Met, RC                 )
+    !-----------------------------------------------------------------------
+    ! Set species concentration for diagnostics in units of
+    ! molec/cm3 (hplin, 11/21/21)
+    !-----------------------------------------------------------------------
+    CALL Set_SpcConc_Diags_MND  ( Input_Opt,  State_Chm, State_Diag,         &
+                                  State_Grid, State_Met, RC                 )
 
-            ! Trap potential errors
-            IF ( RC /= GC_SUCCESS ) THEN
-               ErrMsg = 'Error encountered setting SpeciesConcMND diagnostic'
-               CALL GC_ERROR( ErrMsg, RC, ThisLoc )
-               RETURN
-            ENDIF
+    ! Trap potential errors
+    IF ( RC /= GC_SUCCESS ) THEN
+       ErrMsg = 'Error encountered setting SpeciesConcMND diagnostic'
+       CALL GC_ERROR( ErrMsg, RC, ThisLoc )
+       RETURN
+    ENDIF
 
-        #ifdef ADJOINT
-            !-----------------------------------------------------------------------
-            ! Set species concentration diagnostic in units specified in state_diag_mod
-            !-----------------------------------------------------------------------
-            IF ( State_Diag%Archive_SpeciesAdj ) THEN
-               CALL Set_SpcAdj_Diagnostic( Input_Opt,  State_Chm, State_Diag,         &
-                                           State_Grid, State_Met, RC                 )
+#ifdef ADJOINT
+    !-----------------------------------------------------------------------
+    ! Set species concentration diagnostic in units specified in state_diag_mod
+    !-----------------------------------------------------------------------
+    IF ( State_Diag%Archive_SpeciesAdj ) THEN
+       CALL Set_SpcAdj_Diagnostic( Input_Opt,  State_Chm, State_Diag,         &
+                                   State_Grid, State_Met, RC                 )
 
-               ! Trap potential errors
-               IF ( RC /= GC_SUCCESS ) THEN
-                  ErrMsg = 'Error encountered setting SpeciesAdj diagnostic'
-                  CALL GC_ERROR( ErrMsg, RC, ThisLoc )
-               ENDIF
-            ENDIF
-        #endif
+       ! Trap potential errors
+       IF ( RC /= GC_SUCCESS ) THEN
+          ErrMsg = 'Error encountered setting SpeciesAdj diagnostic'
+          CALL GC_ERROR( ErrMsg, RC, ThisLoc )
+       ENDIF
+    ENDIF
+#endif
 
-            !------------------------------------------------------------------------
-            ! Set total dry deposition flux
-            !------------------------------------------------------------------------
-            IF ( State_Diag%Archive_DryDep ) THEN
-               !$OMP PARALLEL DO                                                     &
-               !$OMP DEFAULT( SHARED                                                )&
-               !$OMP PRIVATE( I, J, S                                               )&
-               !$OMP COLLAPSE( 3                                                    )
-               DO S = 1, State_Diag%Map_DryDep%nSlots
-               DO J = 1, State_Grid%NY
-               DO I = 1, State_Grid%NX
-                  State_Diag%DryDep(I,J,S) = State_Diag%DryDepChm(I,J,S)             &
+    !------------------------------------------------------------------------
+    ! Set total dry deposition flux
+    !------------------------------------------------------------------------
+    IF ( State_Diag%Archive_DryDep ) THEN
+       !$OMP PARALLEL DO                                                     &
+       !$OMP DEFAULT( SHARED                                                )&
+       !$OMP PRIVATE( I, J, S                                               )&
+       !$OMP COLLAPSE( 3                                                    )
+       DO S = 1, State_Diag%Map_DryDep%nSlots
+       DO J = 1, State_Grid%NY
+       DO I = 1, State_Grid%NX
+          State_Diag%DryDep(I,J,S) = State_Diag%DryDepChm(I,J,S)             &
+                                   + State_Diag%DryDepMix(I,J,S)
+       ENDDO
+       ENDDO
+       ENDDO
+       !$OMP END PARALLEL DO
+    ENDIF
+
+    !------------------------------------------------------------------------
+    ! Set total dry deposition flux
+    !------------------------------------------------------------------------
+    IF ( State_Diag%Archive_SatDiagnDryDep ) THEN
+       !$OMP PARALLEL DO                                                     &
+       !$OMP DEFAULT( SHARED                                                )&
+       !$OMP PRIVATE( I, J, S                                               )&
+       !$OMP COLLAPSE( 3                                                    )
+       DO S = 1, State_Diag%Map_SatDiagnDryDep%nSlots
+       DO J = 1, State_Grid%NY
+       DO I = 1, State_Grid%NX
+          State_Diag%SatDiagnDryDep(I,J,S) = State_Diag%DryDepChm(I,J,S)  &
                                            + State_Diag%DryDepMix(I,J,S)
-               ENDDO
-               ENDDO
-               ENDDO
-               !$OMP END PARALLEL DO
-            ENDIF
+       ENDDO
+       ENDDO
+       ENDDO
+       !$OMP END PARALLEL DO
+    ENDIF
 
-            !------------------------------------------------------------------------
-            ! Set total dry deposition flux
-            !------------------------------------------------------------------------
-            IF ( State_Diag%Archive_SatDiagnDryDep ) THEN
-               !$OMP PARALLEL DO                                                     &
-               !$OMP DEFAULT( SHARED                                                )&
-               !$OMP PRIVATE( I, J, S                                               )&
-               !$OMP COLLAPSE( 3                                                    )
-               DO S = 1, State_Diag%Map_SatDiagnDryDep%nSlots
-               DO J = 1, State_Grid%NY
-               DO I = 1, State_Grid%NX
-                  State_Diag%SatDiagnDryDep(I,J,S) = State_Diag%DryDepChm(I,J,S)  &
-                                                   + State_Diag%DryDepMix(I,J,S)
-               ENDDO
-               ENDDO
-               ENDDO
-               !$OMP END PARALLEL DO
-            ENDIF
-
-            !------------------------------------------------------------------------
-            ! Compute fraction of time each grid box spent in the troposphere
-            !------------------------------------------------------------------------
-            IF ( State_Diag%Archive_FracOfTimeInTrop ) THEN
-               !$OMP PARALLEL DO                                                     &
-               !$OMP DEFAULT( SHARED                                                )&
-               !$OMP SCHEDULE( DYNAMIC, 8                                           )&
-               !$OMP PRIVATE( I, J, L                                               )&
-               !$OMP COLLAPSE( 3                                                    )
-               DO L = 1, State_Grid%NZ
-               DO J = 1, State_Grid%NY
+    !------------------------------------------------------------------------
+    ! Compute fraction of time each grid box spent in the troposphere
+    !------------------------------------------------------------------------
+    IF ( State_Diag%Archive_FracOfTimeInTrop ) THEN
+       !$OMP PARALLEL DO                                                     &
+       !$OMP DEFAULT( SHARED                                                )&
+       !$OMP SCHEDULE( DYNAMIC, 8                                           )&
+       !$OMP PRIVATE( I, J, L                                               )&
+       !$OMP COLLAPSE( 3                                                    )
+       DO L = 1, State_Grid%NZ
+       DO J = 1, State_Grid%NY
        DO I = 1, State_Grid%NX
           IF ( State_Met%InTroposphere(I,J,L) ) THEN
              State_Diag%FracOfTimeInTrop(I,J,L) = 1.0_f4
@@ -447,7 +447,7 @@ CONTAINS
          ! Loop over gas phase Hg2 species, convert to mol/mol and add to total Hg2
          DO N = 1, nHg2GSpc
             P       = Map_Hg2G(N)
-            temp_sumHg2G = temp_sumHg2G + State_Chm%Species(P)%Conc(:.:,:) * &
+            temp_sumHg2G = temp_sumHg2G + State_Chm%Species(P)%Conc(:,:,:) * &
                                ( AIRMW / State_Chm%SpcData(P)%Info%MW_g ) 
          ENDDO
           ! Save into State_Diag
@@ -458,7 +458,7 @@ CONTAINS
          ! Loop over particle phase Hg2 species, convert to mol/mol and add to total Hg2
          DO N = 1, nHg2PSpc
             P       = Map_Hg2P(N)
-            temp_sumHg2P = temp_sumHg2P + State_Chm%Species(P)%Conc(:.:,:) * &
+            temp_sumHg2P = temp_sumHg2P + State_Chm%Species(P)%Conc(:,:,:) * &
                                ( AIRMW / State_Chm%SpcData(P)%Info%MW_g ) 
          ENDDO
           ! Save into State_Diag
@@ -471,7 +471,7 @@ CONTAINS
          tempspcMass = State_Chm%Species(id_Hg0)%Conc(:,:,:) * &
                          State_Met%AD(:,:,:)
          ! take sum over levels and divide by grid box area [kg/m2]
-         State_Diag%ColumnHg0 = SUM(tempspcMass, dim=3) / State_Met%AREAM2(:,:)
+         State_Diag%ColumnHg0 = SUM(tempspcMass, dim=3) / State_Grid%Area_M2(:,:)
        ENDIF
        IF ( State_Diag%Archive_TotalHg2G .and. State_Diag%Archive_ColumnHg2G) THEN ! Hg2G
          ! Compute mass at each grid box in the column [kg Hg] 
@@ -479,7 +479,7 @@ CONTAINS
                         ( State_Chm%SpcData(id_Hg0)%Info%MW_g / AIRMW  ) * & ! use Hg molar mass for kg Hg / kg air units
                          State_Met%AD(:,:,:)
          ! take sum over levels and divide by grid box area [kg/m2]
-         State_Diag%ColumnHg2G = SUM(tempspcMass, dim=3) / State_Met%AREAM2(:,:)
+         State_Diag%ColumnHg2G = SUM(tempspcMass, dim=3) / State_Grid%Area_M2(:,:)
        ENDIF
        IF ( State_Diag%Archive_TotalHg2P .and. State_Diag%Archive_ColumnHg2P) THEN ! Hg2P
          ! Compute mass at each grid box in the column [kg Hg] 
@@ -487,7 +487,7 @@ CONTAINS
                         ( State_Chm%SpcData(id_Hg0)%Info%MW_g / AIRMW  ) * & ! use Hg molar mass for kg Hg / kg air units
                          State_Met%AD(:,:,:)
          ! take sum over levels and divide by grid box area [kg/m2]
-         State_Diag%ColumnHg2P = SUM(tempspcMass, dim=3) / State_Met%AREAM2(:,:)
+         State_Diag%ColumnHg2P = SUM(tempspcMass, dim=3) / State_Grid%Area_M2(:,:)
        ENDIF
 
     ENDIF
