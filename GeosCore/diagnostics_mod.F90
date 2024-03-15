@@ -113,6 +113,10 @@ CONTAINS
     REAL(fp) :: temp_sumHg2P(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
     REAL(fp) :: temp_sumHg2G(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
     REAL(fp) :: tempspcMass(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
+    REAL(fp) :: tempsumdryH2G(State_Grid%NX,State_Grid%NY)
+    REAL(fp) :: tempsumdryH2P(State_Grid%NX,State_Grid%NY)
+    REAL(fp) :: tempsumwetH2G(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
+    REAL(fp) :: tempsumwetH2P(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
 
     REAL(fp)                :: ToPptv, LT
 
@@ -330,6 +334,10 @@ CONTAINS
        temp_sumHg2G = 0 ! temporary sum for Hg2 gas 
        temp_sumHg2P = 0 ! temporary sum for Hg2 particle
        tempspcMass = 0 ! temporary sum mass of Hg species
+       tempsumdryHg2G = 0 ! temporary sum of Hg2G dry deposition
+       tempsumdryHg2P = 0 ! temporary sum of Hg2P dry deposition
+       tempsumwetHg2G = 0 ! temporary sum of Hg2G wet deposition
+       tempsumwetHg2P = 0 ! temporary sum of Hg2P wet deposition
 
        IF ( id_HGBrNO2 > 0 ) THEN
           nHg2GSpc           = nHg2GSpc + 1
@@ -490,7 +498,63 @@ CONTAINS
          State_Diag%ColumnHg2P = SUM(tempspcMass, dim=3) / State_Grid%Area_M2(:,:)
        ENDIF
 
+    ! Summarize Hg2G and Hg2P DryDep
+    IF ( State_Diag%Archive_DryDepHg2G ) THEN
+       DO S = 1, State_Diag%Map_DryDep%nSlots
+         DO N = 1, nHg2GSpc
+            P       = Map_Hg2G(N)
+            IF (State_Chm%Map_DryDep(S) == P) THEN ! Found in list of Hg2 species
+              tempsumdryHg2G = tempsumdryHg2G + State_Diag%DryDep(:,:,S) ! add dry deposition from that species
+              EXIT ! Stop looking for id within Map_Hg2G
+            ENDIF
+         ENDDO
+       ENDDO
     ENDIF
+    State_Diag%DryDepHg2G = tempsumdryHg2G ! set to output
+
+    IF ( State_Diag%Archive_DryDepHg2P ) THEN
+       DO S = 1, State_Diag%Map_DryDep%nSlots
+         DO N = 1, nHg2PSpc
+            P       = Map_Hg2P(N)
+            IF (State_Chm%Map_DryDep(S) == P) THEN ! Found in list of Hg2 species
+              tempsumdryHg2P = tempsumdryHg2P + State_Diag%DryDep(:,:,S) ! add dry deposition from that species
+              EXIT ! Stop looking for id within Map_Hg2P
+            ENDIF
+         ENDDO
+       ENDDO
+    ENDIF
+    State_Diag%DryDepHg2P = tempsumdryHg2P ! set to output
+
+    ! Summarize Hg2G and Hg2P WetDep
+    IF ( State_Diag%Archive_WetDepHg2G ) THEN
+       DO S = 1, State_Diag%Map_WetDep%nSlots
+         DO N = 1, nHg2GSpc
+            P       = Map_Hg2G(N)
+            IF (State_Chm%Map_WetDep(S) == P) THEN ! Found in list of Hg2 species
+              tempsumwetHg2G = tempsumwetHg2G + State_Diag%WetLossLS(:,:,:,S) + & ! add wet deposition from that species
+                                 State_Diag%WetLossConv(:,:,:,S)
+              EXIT ! Stop looking for id within Map_Hg2G
+            ENDIF
+         ENDDO
+       ENDDO
+    ENDIF
+    State_Diag%WetDepHg2G = sum(tempsumwetHg2G, dim=3) ! take sum over all levels, output
+
+    IF ( State_Diag%Archive_WetDepHg2P ) THEN
+       DO S = 1, State_Diag%Map_WetDep%nSlots
+         DO N = 1, nHg2PSpc
+            P       = Map_Hg2P(N)
+            IF (State_Chm%Map_WetDep(S) == P) THEN ! Found in list of Hg2 species
+              tempsumwetHg2P = tempsumwetHg2P + State_Diag%WetLossLS(:,:,:,S) + & ! add wet deposition from that species
+                                 State_Diag%WetLossConv(:,:,:,S)
+              EXIT ! Stop looking for id within Map_Hg2P
+            ENDIF
+         ENDDO
+       ENDDO
+    ENDIF
+    State_Diag%WetDepHg2P = sum(tempsumwetHg2P, dim=3) ! take sum over all levels, output
+
+    ENDIF ! End of Mercury diagnostics 
 
     !========================================================================
     ! Archive quantities for satellite diagnostics (if requested)

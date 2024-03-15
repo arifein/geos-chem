@@ -1104,9 +1104,6 @@ MODULE State_Diag_Mod
      REAL(f4),           POINTER :: ConcBrO(:,:,:)
      LOGICAL                     :: Archive_ConcBrO
 
-     REAL(f4),           POINTER :: LossHg2bySeaSalt(:,:)
-     LOGICAL                     :: Archive_LossHg2bySeaSalt
-
      REAL(f4),           POINTER :: LossRateHg2bySeaSalt(:,:  )
      LOGICAL                     :: Archive_LossRateHg2bySeaSalt
 
@@ -1193,6 +1190,9 @@ MODULE State_Diag_Mod
      LOGICAL :: Archive_Hg2GasToSSA
      !%%%%% MCHgMAP outputs - A. Feinberg %%%%%
 
+     REAL(f4), POINTER :: LossHg2bySeaSalt(:,:)
+     LOGICAL :: Archive_LossHg2bySeaSalt
+
      REAL(f4), POINTER :: TotalHg2G              (:,:,:)
      LOGICAL :: Archive_TotalHg2G
 
@@ -1207,6 +1207,18 @@ MODULE State_Diag_Mod
 
      REAL(f4), POINTER :: ColumnHg2P              (:,:)
      LOGICAL :: Archive_ColumnHg2P
+
+     REAL(f4), POINTER :: DryDepHg2G              (:,:)
+     LOGICAL :: Archive_DryDepHg2G
+
+     REAL(f4), POINTER :: DryDepHg2P              (:,:)
+     LOGICAL :: Archive_DryDepHg2P
+
+     REAL(f4), POINTER :: WetDepHg2G              (:,:)
+     LOGICAL :: Archive_WetDepHg2G
+
+     REAL(f4), POINTER :: WetDepHg2P              (:,:)
+     LOGICAL :: Archive_WetDepHg2P
      !%%%%% Simulation with RRTMG %%%%%
 
      INTEGER                     :: nRadOut
@@ -2652,12 +2664,20 @@ CONTAINS
     State_Diag%ColumnHg0                           => NULL()
     State_Diag%ColumnHg2G                          => NULL()
     State_Diag%ColumnHg2P                          => NULL()
+    State_Diag%DryDepHg2G                          => NULL()
+    State_Diag%DryDepHg2P                          => NULL()
+    State_Diag%WetDepHg2G                          => NULL()
+    State_Diag%WetDepHg2P                          => NULL()
 
     State_Diag%Archive_TotalHg2G                   = .FALSE.
     State_Diag%Archive_TotalHg2P                   = .FALSE.
     State_Diag%Archive_ColumnHg0                   = .FALSE.
     State_Diag%Archive_ColumnHg2G                  = .FALSE.
     State_Diag%Archive_ColumnHg2P                  = .FALSE.
+    State_Diag%Archive_DryDepHg2G                  = .FALSE.
+    State_Diag%Archive_DryDepHg2P                  = .FALSE.
+    State_Diag%Archive_WetDepHg2G                  = .FALSE.
+    State_Diag%Archive_WetDepHg2P                  = .FALSE.
 
     ! ObsPack diagnostic quantities
     State_Diag%Do_ObsPack                          = .FALSE.
@@ -11387,6 +11407,94 @@ CONTAINS
           RETURN
        ENDIF
 
+       !-------------------------------------------------------------------
+       ! Dry deposition of gaseous Hg2 
+       !-------------------------------------------------------------------
+       diagID  = 'DryDepHg2G'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%DryDepHg2G,                          &
+            archiveData    = State_Diag%Archive_DryDepHg2G,                  &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
+       ! Dry deposition of particulate Hg2 
+       !-------------------------------------------------------------------
+       diagID  = 'DryDepHg2P'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%DryDepHg2P,                          &
+            archiveData    = State_Diag%Archive_DryDepHg2P,                  &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
+       ! Wet deposition of gaseous Hg2 
+       !-------------------------------------------------------------------
+       diagID  = 'WetDepHg2G'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%WetDepHg2G,                          &
+            archiveData    = State_Diag%Archive_WetDepHg2G,                  &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
+       ! Wet deposition of particulate Hg2 
+       !-------------------------------------------------------------------
+       diagID  = 'WetDepHg2P'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%WetDepHg2P,                          &
+            archiveData    = State_Diag%Archive_WetDepHg2P,                  &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
        !----------------------------------------------------------------
        ! Br concentration
        !----------------------------------------------------------------
@@ -11860,7 +11968,7 @@ CONTAINS
        ! being requested as diagnostic output when the corresponding
        ! array has not been allocated.
        !-------------------------------------------------------------------
-       DO N = 1, 46
+       DO N = 1, 50 
 
           SELECT CASE( N )
              CASE( 1  )
@@ -11955,6 +12063,14 @@ CONTAINS
                 diagId = 'ColumnHg2G'
              CASE( 46 )
                 diagId = 'ColumnHg2P'
+             CASE( 47 )
+                diagId = 'DryDepHg2G'
+             CASE( 48 )
+                diagId = 'DryDepHg2P'
+             CASE( 49 )
+                diagId = 'WetDepHg2G'
+             CASE( 50 )
+                diagId = 'WetDepHg2P'
            END SELECT
 
            ! Exit if any of the above are in the diagnostic list
@@ -13811,6 +13927,26 @@ CONTAINS
 
     CALL Finalize( diagId   = 'ColumnHg2P',                                  &
                    Ptr2Data = State_Diag%ColumnHg2P,                         &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'DryDepHg2G',                                  &
+                   Ptr2Data = State_Diag%DryDepHg2G,                         &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'DryDepHg2P',                                  &
+                   Ptr2Data = State_Diag%DryDepHg2p,                         &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'WetDepHg2G',                                  &
+                   Ptr2Data = State_Diag%WetDepHg2G,                         &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'WetDepHg2P',                                  &
+                   Ptr2Data = State_Diag%WetDepHg2P,                         &
                    RC       = RC                                            )
     IF ( RC /= GC_SUCCESS ) RETURN
 
@@ -16165,6 +16301,26 @@ CONTAINS
        IF ( isUnits   ) Units = 'kg Hg m-2'
        IF ( isRank    ) Rank  = 2 
 
+    ELSE IF ( TRIM( Name_AllCaps ) == 'DRYDEPHG2G' )  THEN
+       IF ( isDesc    ) Desc  = 'Dry deposition of gaseous Hg2'
+       IF ( isUnits   ) Units = 'molec cm-2 s-1'
+       IF ( isRank    ) Rank  = 2 
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'DRYDEPHG2P' )  THEN
+       IF ( isDesc    ) Desc  = 'Dry deposition of particulate Hg2'
+       IF ( isUnits   ) Units = 'molec cm-2 s-1'
+       IF ( isRank    ) Rank  = 2 
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'WETDEPHG2G' )  THEN
+       IF ( isDesc    ) Desc  = 'Wet deposition of gaseous Hg2 (total column)'
+       IF ( isUnits   ) Units = 'kg s-1'
+       IF ( isRank    ) Rank  = 2 
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'WETDEPHG2P' )  THEN
+       IF ( isDesc    ) Desc  = 'Wet deposition of particulate Hg2 (total column)'
+       IF ( isUnits   ) Units = 'kg s-1'
+       IF ( isRank    ) Rank  = 2 
+
     ELSE IF ( TRIM( Name_AllCaps ) == 'CONCBR' ) THEN
        IF ( isDesc    ) Desc  = 'Br concentration'
        IF ( isUnits   ) Units = 'molec cm-3'
@@ -16179,7 +16335,7 @@ CONTAINS
        IF ( isDesc    ) Desc  = &
             'Loss of Hg2 by reaction with sea salt aerosols (total column)'
        IF ( isUnits   ) Units = 'kg s-1'
-       IF ( isRank    ) Rank  =  3
+       IF ( isRank    ) Rank  = 2 
 
     ELSE IF ( TRIM( Name_AllCaps ) == 'LOSSRATEHG2BYSEASALT' ) THEN
        IF ( isDesc    ) Desc  = &
