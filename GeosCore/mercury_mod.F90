@@ -2567,6 +2567,7 @@ CONTAINS
     USE Species_Mod,     ONLY : Species
     USE Time_Mod,        ONLY : Get_Ts_Chem
     USE Time_Mod,        ONLY : Its_Time_For_A3
+    USE PhysConstants,   ONLY : AVO ! MCHgMAP
 !
 ! !INPUT PARAMETERS:
 !
@@ -2595,6 +2596,7 @@ CONTAINS
     ! Scalars
     INTEGER            :: I,       J,        L,  N,     S
     REAL(fp)           :: gasConc, dGasConc, dt, f_PBL, k
+    REAL(fp)           :: molec_kg_Hg ! unit conversion MCHgMAP 
 
     ! Strings
     CHARACTER(LEN=255) :: errMsg, thisLoc
@@ -2611,6 +2613,9 @@ CONTAINS
 
     ! Initialize diagnostic arrays
     IF ( State_Diag%Archive_Hg2GasToSSA ) State_Diag%Hg2GasToSSA = 0.0_f4
+
+    ! MCHgMAP - vertical sum of this variable in kg/s
+    IF ( State_Diag%Archive_LossHg2bySeaSalt ) State_Diag%LossHg2bySeaSalt = 0.0_f4
 
     ! Calculate loss rate by seasalt uptake
     IF ( ITS_TIME_FOR_A3() ) THEN
@@ -2675,6 +2680,14 @@ CONTAINS
     ENDDO
     ENDDO
     ENDDO
+    ! Diagnostics for MCHgMAP - take vertical sum, convert to kg/s
+    IF ( State_Diag%Archive_LossHg2bySeaSalt) THEN
+       ! unit conversion factor
+       ! 200.59 (g mol^-1) /1000 (g kg^-1) /6.02*10^23 (molec mol^-1) * 10^6 (m^3/cm^3)= 3.332e-19
+       molec_kg_Hg = State_Chm%SpcData(id_Hg0)%Info%MW_g / 1000._fp / AVO * 1e6_fp
+       State_Diag%LossHg2bySeaSalt(:,:) = sum(State_Diag%Hg2GasToSSA * State_Met%AIRVOL, dim=3) * & ! vertical sum
+                                           molec_kg_Hg ! convert to kg/s
+    ENDIF
     !$OMP END PARALLEL DO
 
   END SUBROUTINE SeaSaltUptake

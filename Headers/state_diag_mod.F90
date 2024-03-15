@@ -1104,7 +1104,7 @@ MODULE State_Diag_Mod
      REAL(f4),           POINTER :: ConcBrO(:,:,:)
      LOGICAL                     :: Archive_ConcBrO
 
-     REAL(f4),           POINTER :: LossHg2bySeaSalt(:,:,:)
+     REAL(f4),           POINTER :: LossHg2bySeaSalt(:,:)
      LOGICAL                     :: Archive_LossHg2bySeaSalt
 
      REAL(f4),           POINTER :: LossRateHg2bySeaSalt(:,:  )
@@ -16177,7 +16177,7 @@ CONTAINS
 
     ELSE IF ( TRIM( Name_AllCaps ) == 'LOSSHG2BYSEASALT' ) THEN
        IF ( isDesc    ) Desc  = &
-            'Loss of Hg2 by reaction with sea salt aerosols'
+            'Loss of Hg2 by reaction with sea salt aerosols (total column)'
        IF ( isUnits   ) Units = 'kg s-1'
        IF ( isRank    ) Rank  =  3
 
