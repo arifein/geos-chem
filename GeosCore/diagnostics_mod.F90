@@ -113,10 +113,10 @@ CONTAINS
     REAL(fp) :: temp_sumHg2P(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
     REAL(fp) :: temp_sumHg2G(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
     REAL(fp) :: tempspcMass(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
-    REAL(fp) :: tempsumdryH2G(State_Grid%NX,State_Grid%NY)
-    REAL(fp) :: tempsumdryH2P(State_Grid%NX,State_Grid%NY)
-    REAL(fp) :: tempsumwetH2G(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
-    REAL(fp) :: tempsumwetH2P(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
+    REAL(fp) :: tempsumdryHg2G(State_Grid%NX,State_Grid%NY)
+    REAL(fp) :: tempsumdryHg2P(State_Grid%NX,State_Grid%NY)
+    REAL(fp) :: tempsumwetHg2G(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
+    REAL(fp) :: tempsumwetHg2P(State_Grid%NX,State_Grid%NY,State_Grid%NZ)
 
     REAL(fp)                :: ToPptv, LT
 
@@ -527,7 +527,7 @@ CONTAINS
 
     ! Summarize Hg2G and Hg2P WetDep
     IF ( State_Diag%Archive_WetDepHg2G ) THEN
-       DO S = 1, State_Diag%Map_WetDep%nSlots
+       DO S = 1, State_Chm%nWetDep
          DO N = 1, nHg2GSpc
             P       = Map_Hg2G(N)
             IF (State_Chm%Map_WetDep(S) == P) THEN ! Found in list of Hg2 species
@@ -541,7 +541,7 @@ CONTAINS
     State_Diag%WetDepHg2G = sum(tempsumwetHg2G, dim=3) ! take sum over all levels, output
 
     IF ( State_Diag%Archive_WetDepHg2P ) THEN
-       DO S = 1, State_Diag%Map_WetDep%nSlots
+       DO S = 1, State_Chm%nWetDep
          DO N = 1, nHg2PSpc
             P       = Map_Hg2P(N)
             IF (State_Chm%Map_WetDep(S) == P) THEN ! Found in list of Hg2 species

@@ -2680,6 +2680,8 @@ CONTAINS
     ENDDO
     ENDDO
     ENDDO
+    !$OMP END PARALLEL DO
+
     ! Diagnostics for MCHgMAP - take vertical sum, convert to kg/s
     IF ( State_Diag%Archive_LossHg2bySeaSalt) THEN
        ! unit conversion factor
@@ -2688,7 +2690,6 @@ CONTAINS
        State_Diag%LossHg2bySeaSalt(:,:) = sum(State_Diag%Hg2GasToSSA * State_Met%AIRVOL, dim=3) * & ! vertical sum
                                            molec_kg_Hg ! convert to kg/s
     ENDIF
-    !$OMP END PARALLEL DO
 
   END SUBROUTINE SeaSaltUptake
 !EOC
