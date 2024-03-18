@@ -500,7 +500,7 @@ CONTAINS
 
     ! Summarize Hg2G and Hg2P DryDep
     IF ( State_Diag%Archive_DryDepHg2G ) THEN
-       DO S = 1, State_Diag%Map_DryDep%nSlots
+       DO S = 1, State_Chm%nDryDep
          DO N = 1, nHg2GSpc
             P       = Map_Hg2G(N)
             IF (State_Chm%Map_DryDep(S) == P) THEN ! Found in list of Hg2 species
@@ -513,7 +513,8 @@ CONTAINS
     State_Diag%DryDepHg2G = tempsumdryHg2G ! set to output
 
     IF ( State_Diag%Archive_DryDepHg2P ) THEN
-       DO S = 1, State_Diag%Map_DryDep%nSlots
+
+       DO S = 1, State_Chm%nDryDep
          DO N = 1, nHg2PSpc
             P       = Map_Hg2P(N)
             IF (State_Chm%Map_DryDep(S) == P) THEN ! Found in list of Hg2 species
@@ -523,6 +524,7 @@ CONTAINS
          ENDDO
        ENDDO
     ENDIF
+
     State_Diag%DryDepHg2P = tempsumdryHg2P ! set to output
 
     ! Summarize Hg2G and Hg2P WetDep
