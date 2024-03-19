@@ -504,8 +504,7 @@ CONTAINS
          DO N = 1, nHg2GSpc
             P       = Map_Hg2G(N)
             IF (State_Chm%Map_DryDep(S) == P) THEN ! Found in list of Hg2 species
-              tempsumdryHg2G = tempsumdryHg2G + State_Diag%DryDepChm(:,:,S)   &
-                                   + State_Diag%DryDepMix(:,:,S) ! add dry deposition from that species
+              tempsumdryHg2G = tempsumdryHg2G + State_Diag%DryDep(:,:,S) ! add dry deposition from that species
               EXIT ! Stop looking for id within Map_Hg2G
             ENDIF
          ENDDO
@@ -519,8 +518,7 @@ CONTAINS
          DO N = 1, nHg2PSpc
             P       = Map_Hg2P(N)
             IF (State_Chm%Map_DryDep(S) == P) THEN ! Found in list of Hg2 species
-              tempsumdryHg2P = tempsumdryHg2P + State_Diag%DryDepChm(:,:,S)   & 
-                                   + State_Diag%DryDepMix(:,:,S) ! add dry deposition from that species
+              tempsumdryHg2P = tempsumdryHg2P + State_Diag%DryDep(:,:,S) ! add dry deposition from that species
               EXIT ! Stop looking for id within Map_Hg2P
             ENDIF
          ENDDO
