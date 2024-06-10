@@ -3414,8 +3414,20 @@ CONTAINS
           !D  = 7.4e-8_fp * SQRT( 2.26_fp * 18.0_fp   )                       &
           !   * TK        / ( ( 14.8_fp**0.6_fp ) *vi )
           !
-          ! MCHgMAP new parametrization for diffusivity from Kuss (2014) [cm2 s-1]
-          D = 0.0011_fp * EXP(-1330.2_fp / TK) 
+          !-----------------------------------------------------
+          ! Two Hg0 diffusion coefficient parameterizations from MCHgMAP
+          ! Make sure only one is uncommented!
+          ! Kuss (2014) and Wilke and Chang (1955)
+          ! Based on 04/16/2024 MCHgMAP update
+          ! units: cm hr-1
+          !-----------------------------------------------------
+
+          ! MCHgMAP new parametrization for diffusivity from Kuss (2014) [cm2 s-1], DOI: 10.4319/lo.2014.59.5.1461
+          D = 0.0011_fp * EXP(-1330.2_fp / TK)
+
+          ! MCHgMAP new parametrization for diffusivity from Wilke and Chang (1955) [cm2 s-1], DOI: 10.1002/aic.690010222
+          ! D = 7.4e-10_fp * TK * SQRT( 2.26_fp * 18.01_fp) / (eta_sw * 12.74_fp**0.6)
+          
           ! MCHgMAP new parametrization for Schmidt number of Hg0 - Sharqawy et al. (2010) [unitless]
           Sc = vi / D
 
@@ -3428,8 +3440,10 @@ CONTAINS
           ! ScCO2  = 644.7_fp + TC * ( -6.16_fp + TC * ( 0.11_fp ) )
           !
           ! MCHgMAP new parametrization from Wanninnkhof (2014):
-          ScCO2 = 2116.8_fp - 136.25_fp * TC + 4.7353_fp * TC**2 - 0.092307_fp * TC**3 &
-                  + 0.0007555_fp * TC**4
+          ! MCHgMAP update [4/16/2024]: Varying ScCO2 identified as an error. Now using constant (600 or 660 depending on Kw
+          ! formulation)
+          ! ScCO2 = 2116.8_fp - 136.25_fp * TC + 4.7353_fp * TC**2 - 0.092307_fp * TC**3 &
+          !        + 0.0007555_fp * TC**4
  
           ! Square of surface (actually 10m) wind speed [m2/s2]
           Usq    = State_Met%U10M(I,J)**2 + State_Met%V10M(I,J)**2
@@ -3440,9 +3454,21 @@ CONTAINS
           !------------------------------------------------------
           ! Mass transfer coefficient [cm/h], from Nightingale et al. 2000
           ! Kw     = ( 0.25_fp * Usq ) / SQRT( Sc / ScCO2 )
+ 
+          !-----------------------------------------------------
+          ! Two air-water gas transfer velocity parameterizations from MCHgMAP
+          ! Make sure only one is uncommented!
+          ! Nightingale et al., 2000 and Wanninkhof (2014)
+          ! Based on 04/16/2024 MCHgMAP update
+          ! units: cm hr-1
+          !-----------------------------------------------------
           ! MCHgMAP new parametrization from Nightingale et al., 2000, doi: 10.1029/1999GB900091
-          Kw     = ( 0.222_fp * Usq + 0.333 * Usq**0.5 ) / SQRT( Sc / ScCO2 )
-
+          ! MCHgMAP update [04/16/2024]: set ScCO2 = 600 for Nightingale et al., 2000
+          ! Kw     = ( 0.222_fp * Usq + 0.333 * Usq**0.5 ) / SQRT( Sc / 600_fp )
+          
+          ! MCHgMAP alternative parameterization from Wannnkhof 2014, doi: 10.4319/lom.2014.12.351
+          Kw     = ( 0.251_fp * Usq ) / SQRT( SC / 660_fp )
+          
           ! Hg0 tracer number (for Spc)
           N = id_Hg0 !Hg0_Id_List(NN)
 
