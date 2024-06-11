@@ -3423,10 +3423,10 @@ CONTAINS
           !-----------------------------------------------------
 
           ! MCHgMAP new parametrization for diffusivity from Kuss (2014) [cm2 s-1], DOI: 10.4319/lo.2014.59.5.1461
-          D = 0.0011_fp * EXP(-1330.2_fp / TK)
+          ! D = 0.0011_fp * EXP(-1330.2_fp / TK)
 
           ! MCHgMAP new parametrization for diffusivity from Wilke and Chang (1955) [cm2 s-1], DOI: 10.1002/aic.690010222
-          ! D = 7.4e-10_fp * TK * SQRT( 2.26_fp * 18.01_fp) / (eta_sw * 12.74_fp**0.6)
+          D = 7.4e-10_fp * TK * SQRT( 2.26_fp * 18.01_fp) / (eta_sw * 12.74_fp**0.6)
           
           ! MCHgMAP new parametrization for Schmidt number of Hg0 - Sharqawy et al. (2010) [unitless]
           Sc = vi / D
