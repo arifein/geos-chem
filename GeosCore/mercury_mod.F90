@@ -3420,6 +3420,7 @@ CONTAINS
           ! Kuss (2014) and Wilke and Chang (1955)
           ! Based on 04/16/2024 MCHgMAP update
           ! units: cm hr-1
+          ! testing branch to make sure remote and local are communicating [06/11/2024]
           !-----------------------------------------------------
 
           ! MCHgMAP new parametrization for diffusivity from Kuss (2014) [cm2 s-1], DOI: 10.4319/lo.2014.59.5.1461
