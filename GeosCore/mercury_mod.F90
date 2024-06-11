@@ -1375,9 +1375,10 @@ CONTAINS
 
     !========================================================================
     ! Hg2 uptake by seasalt aerosols in the MBL
+    ! MCHgMAP [June 11, 2024]: Testing how removal of this flux affects results
     !========================================================================
-    CALL SeaSaltUptake( Input_Opt,  State_Chm, State_Diag,                   &
-                        State_Grid, State_Met, RC                           )
+    ! CALL SeaSaltUptake( Input_Opt,  State_Chm, State_Diag,                   &
+    !                     State_Grid, State_Met, RC                           )
 
     !========================================================================
     ! Convert species back to original units (ewl, 8/16/16)
