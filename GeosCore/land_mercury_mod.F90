@@ -483,9 +483,9 @@ CONTAINS
     ! on formulation in Khan et al. (2019), 10.1039/c9em00341j
     ! emis = a * conc^b * rad^c
     ! where a, b, and c are tuned parameters
-    SOIL_EMIS_FAC = 685e+0_fp ! prefactor, a
-    EXP_SOIL = 2.87e+0_fp ! exponent for soil conc, b
-    EXP_RAD = 0.546e+0_fp ! exponent for radiation, c 
+    SOIL_EMIS_FAC = 907e+0_fp ! prefactor, a
+    EXP_SOIL = 4.82e+0_fp ! exponent for soil conc, b
+    EXP_RAD = 1.54e+0_fp ! exponent for radiation, c 
 
     ! Initialize pointers
     IREG    => State_Met%IREG
