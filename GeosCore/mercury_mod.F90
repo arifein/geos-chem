@@ -3511,13 +3511,6 @@ CONTAINS
           ! Flux limited by ocean and atm Hg(0)
           !--------------------------------------------------------
 
-          ! emr 2/12/25 replacing flux with 0 if CHg0aq is zero
-          IF ( Hg0aq(I,J) = 0.0_fp ) THEN
-             FLUX(I,J)  = 0.0_fp
-             FUP(I,J)   = 0.0_fp
-             FDOWN(I,J) = 0.0_fp
-          ENDIF
-
           ! Cap the flux w/ the available Hg(0) ocean mass
           Hg0aqtemp = CHg0aq * A_M2 * FRAC_O *1.0e-8_fp
 
