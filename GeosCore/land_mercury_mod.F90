@@ -487,6 +487,8 @@ CONTAINS
     EXP_SOIL = 4.51e+0_fp ! exponent for soil conc, b
     EXP_RAD = 1.67e+0_fp ! exponent for radiation, c 
 
+    Year = GET_YEAR()
+
     ! Initialize pointers
     IREG    => State_Met%IREG
     ILAND   => State_Met%ILAND
@@ -557,59 +559,59 @@ CONTAINS
          ! This will potentially introduce step discontinuities into results that should be evaluated before
          ! putting into production.
          ! Scale factors obtained from /home/emroy/MCHgMAP/tests/SoilEmissionTrend.ipynb
-         IF ( GET_YEAR() == 2007 )
+         IF ( Year == 2007 )
            SOIL_EMIS = SOIL_EMIS * 0.986_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2008 )
+         IF ( Year == 2008 )
            SOIL_EMIS = SOIL_EMIS * 0.966_fp ! SCALE
 
          ENDIF
-         IF ( GET_YEAR() == 2009 )
+         IF ( Year == 2009 )
            SOIL_EMIS = SOIL_EMIS * 0.989_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2010 )
+         IF ( Year == 2010 )
            SOIL_EMIS = SOIL_EMIS * 0.996_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2011 )
+         IF ( Year == 2011 )
            SOIL_EMIS = SOIL_EMIS * 0.998_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2012 )
+         IF ( Year == 2012 )
            SOIL_EMIS = SOIL_EMIS * 0.992_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2013 )
+         IF ( Year == 2013 )
            SOIL_EMIS = SOIL_EMIS * 1.025_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2014 )
+         IF ( Year == 2014 )
            SOIL_EMIS = SOIL_EMIS * 1.034_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2015 )
+         IF ( Year == 2015 )
            SOIL_EMIS = SOIL_EMIS * 1.062_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2016 )
+         IF ( Year == 2016 )
            SOIL_EMIS = SOIL_EMIS * 1.053_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2017 )
+         IF ( Year == 2017 )
            SOIL_EMIS = SOIL_EMIS * 1.073_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2018 )
+         IF ( Year == 2018 )
            SOIL_EMIS = SOIL_EMIS * 1.068_fp ! SCALE
 
          ENDIF
-         IF ( GET_YEAR() == 2019 )
+         IF ( Year == 2019 )
            SOIL_EMIS = SOIL_EMIS * 1.064_fp ! SCALE
          
          ENDIF
-         IF ( GET_YEAR() == 2020 )
+         IF ( Year == 2020 )
            SOIL_EMIS = SOIL_EMIS * 1.085_fp ! SCALE
          
          ENDIF
