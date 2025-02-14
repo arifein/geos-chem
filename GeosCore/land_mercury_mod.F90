@@ -378,7 +378,7 @@ CONTAINS
 !
     USE State_Grid_Mod,     ONLY : GrdState
     USE State_Met_Mod,      ONLY : MetState
-    USE TIME_MOD,           ONLY : GET_MONTH, ITS_A_NEW_MONTH
+    USE TIME_MOD,           ONLY : GET_YEAR, GET_MONTH, ITS_A_NEW_MONTH
 !
 ! !INPUT PARAMETERS:
 !
@@ -551,6 +551,69 @@ CONTAINS
                         ((State_Met%SWGDN(I,J) * LIGHTFRAC ) ** EXP_RAD)  
 
           ENDDO
+         
+         ! emr 02/14/2025: Current soil emission parameterization results in a 10 year emission reduction
+         ! of nearly 200 Mg. To correct for this trend, I apply an annually varying scale factor.
+         ! This will potentially introduce step discontinuities into results that should be evaluated before
+         ! putting into production.
+         ! Scale factors obtained from /home/emroy/MCHgMAP/tests/SoilEmissionTrend.ipynb
+         IF ( GET_YEAR() == 2007 )
+           SOIL_EMIS = SOIL_EMIS * 0.986_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2008 )
+           SOIL_EMIS = SOIL_EMIS * 0.966_fp ! SCALE
+
+         ENDIF
+         IF ( GET_YEAR() == 2009 )
+           SOIL_EMIS = SOIL_EMIS * 0.989_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2010 )
+           SOIL_EMIS = SOIL_EMIS * 0.996_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2011 )
+           SOIL_EMIS = SOIL_EMIS * 0.998_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2012 )
+           SOIL_EMIS = SOIL_EMIS * 0.992_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2013 )
+           SOIL_EMIS = SOIL_EMIS * 1.025_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2014 )
+           SOIL_EMIS = SOIL_EMIS * 1.034_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2015 )
+           SOIL_EMIS = SOIL_EMIS * 1.062_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2016 )
+           SOIL_EMIS = SOIL_EMIS * 1.053_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2017 )
+           SOIL_EMIS = SOIL_EMIS * 1.073_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2018 )
+           SOIL_EMIS = SOIL_EMIS * 1.068_fp ! SCALE
+
+         ENDIF
+         IF ( GET_YEAR() == 2019 )
+           SOIL_EMIS = SOIL_EMIS * 1.064_fp ! SCALE
+         
+         ENDIF
+         IF ( GET_YEAR() == 2020 )
+           SOIL_EMIS = SOIL_EMIS * 1.085_fp ! SCALE
+         
+         ENDIF
+
 
          ! convert soilnat from ng /m2 /h -> kg /gridbox /s
          EHg0_so(I,J) = SOIL_EMIS * AREA_M2 * 1e-12_fp / &
